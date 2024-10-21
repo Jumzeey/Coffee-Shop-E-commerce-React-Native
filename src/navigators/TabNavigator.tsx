@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StyleSheet } from 'react-native';
 import { Home, Cart, Favourite, OrderHistory } from '../screens';
-import CustomIcons from '../comonents/CustomIcons';
+import CustomIcons from '../components/CustomIcons';
 import { COLORS } from '../theme/theme';
 import { BlurView } from '@react-native-community/blur';
 
