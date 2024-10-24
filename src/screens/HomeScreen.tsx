@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { StyleSheet, View, StatusBar, ScrollView, Text, TouchableOpacity, TextInput, FlatList } from 'react-native';
+import { StyleSheet, View, StatusBar, ScrollView, Text, TouchableOpacity, TextInput, FlatList, Dimensions } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useStore } from '../store/store';
 import { Coffee } from '../types';
@@ -9,7 +9,7 @@ import { HeaderBar } from '../components';
 import CustomIcons from '../components/CustomIcons';
 import CoffeeCard from '../components/shared/Card';
 
-const HomeScreen = () => {
+const HomeScreen = ({navigation}: any) => {
     const CoffeeList = useStore((state) => state.coffeeList);
     const BeanList = useStore((state) => state.beanList);
 
@@ -111,13 +111,20 @@ const HomeScreen = () => {
                 <FlatList
                     ref={coffeeFlatListRef}
                     horizontal
+                    ListEmptyComponent={
+                        <View style={styles.emptyListContainer}>
+                            <Text style={styles.categoryText}>Nothing found</Text>
+                        </View>
+                    }
                     showsHorizontalScrollIndicator={false}
                     data={filteredCoffee}
                     contentContainerStyle={styles.flatListContainer}
                     keyExtractor={item => item.id}
                     renderItem={({ item }) => {
                         return (
-                            <TouchableOpacity>
+                            <TouchableOpacity onPress={ () => {
+                                navigation.push('Details');
+                            }}>
                                 <CoffeeCard data={item} buttonPressHandler={() => { }} />
                             </TouchableOpacity>
                         );
@@ -141,7 +148,9 @@ const HomeScreen = () => {
                     keyExtractor={item => item.id}
                     renderItem={({ item }) => {
                         return (
-                            <TouchableOpacity>
+                            <TouchableOpacity onPress={() => {
+                                navigation.push('Details');
+                            }}>
                                 <CoffeeCard data={item} buttonPressHandler={() => { }} />
                             </TouchableOpacity>
                         );
@@ -218,6 +227,12 @@ const styles = StyleSheet.create({
         gap: SPACING.space_20,
         paddingVertical: SPACING.space_20,
         paddingHorizontal: SPACING.space_30,
+    },
+    emptyListContainer: {
+        width: Dimensions.get('window').width - SPACING.space_30 * 2,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: SPACING.space_36 * 1.6,
     },
     coffeeBeansTitle: {
         fontSize: FONTSIZE.size_18,
