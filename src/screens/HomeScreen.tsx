@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { StyleSheet, View, StatusBar, ScrollView, Text, TouchableOpacity, TextInput, FlatList } from 'react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useStore } from '../store/store';
 import { Coffee } from '../types';
-import { getCategoriesFromData, getItemsByCategory } from '../utils';
+import { getCategoriesFromData, getItemsByCategory, scrollToTop, filterCoffeeList } from '../utils';
 import { BORDERRADIUS, COLORS, FONTFAMILY, FONTSIZE, SPACING } from '../theme/theme';
 import { HeaderBar } from '../components';
 import CustomIcons from '../components/CustomIcons';
@@ -16,21 +16,38 @@ const HomeScreen = () => {
     const [categories, setCategories] = useState<string[]>([]);
     const [searchText, setSearchText] = useState<string>('');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
-    const [sortedCoffee, setSortedCoffee] = useState<Coffee[]>(CoffeeList);
+
+    // Create a ref for the FlatList
+    const coffeeFlatListRef = useRef<FlatList<Coffee>>(null);
 
     // Effect to update categories whenever CoffeeList changes
     useEffect(() => {
         setCategories(getCategoriesFromData(CoffeeList));
+    }, [CoffeeList]);
 
-        const newFilteredCoffee = getItemsByCategory(CoffeeList, selectedCategory, 'name');
-        setSortedCoffee(newFilteredCoffee);
-    }, [CoffeeList, selectedCategory]);
+    // Memoized filtered and sorted coffee list
+    const filteredCoffee = useMemo(() => {
+        const categoryFilteredCoffee = getItemsByCategory(CoffeeList, selectedCategory, 'name');
+        return filterCoffeeList(categoryFilteredCoffee, searchText);
+    }, [CoffeeList, selectedCategory, searchText]);
 
+    // Effect to scroll FlatList to top when selectedCategory or searchText changes
+    useEffect(() => {
+        scrollToTop(coffeeFlatListRef);
+    }, [filteredCoffee]);
+
+    // Handle category select
     const handleCategorySelect = (category: string) => {
         setSelectedCategory(category);
     };
 
+    // Function to clear the search
+    const clearSearch = () => {
+        setSearchText('');
+    };
+
     const tabBarHeight = useBottomTabBarHeight();
+
     return (
         <View style={styles.screenContainer}>
             <StatusBar backgroundColor={COLORS.primaryBlackHex} />
@@ -58,9 +75,21 @@ const HomeScreen = () => {
                         placeholderTextColor={COLORS.primaryLightGreyHex}
                         style={styles.textInputContainer}
                     />
+                    {searchText.length > 0 ? (
+                        <TouchableOpacity onPress={clearSearch}>
+                            <CustomIcons
+                                style={styles.inputIcon}
+                                name="close"
+                                size={FONTSIZE.size_12}
+                                color={COLORS.primaryLightGreyHex}
+                            />
+                        </TouchableOpacity>
+                    ) : (
+                        <></>
+                    )}
                 </View>
 
-                {/* Category*/}
+                {/* Category */}
                 <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -78,21 +107,27 @@ const HomeScreen = () => {
                     ))}
                 </ScrollView>
 
-                {/*coffee flatlist*/}
-                    <FlatList
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        data={sortedCoffee}
-                        contentContainerStyle={styles.flatListContainer}
-                        keyExtractor={item => item.id}
-                        renderItem={({item}) => {
-                            return <TouchableOpacity>
+                {/* Coffee FlatList */}
+                <FlatList
+                    ref={coffeeFlatListRef}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    data={filteredCoffee}
+                    contentContainerStyle={styles.flatListContainer}
+                    keyExtractor={item => item.id}
+                    renderItem={({ item }) => {
+                        return (
+                            <TouchableOpacity>
                                 <CoffeeCard data={item} buttonPressHandler={() => { }} />
-                            </TouchableOpacity>;
-                        }}
-                    />
+                            </TouchableOpacity>
+                        );
+                    }}
+                    // FlatList optimizations
+                    initialNumToRender={5}
+                    windowSize={5}
+                />
 
-                {/*bean flatlist*/}
+                {/* Bean FlatList */}
                 <Text style={styles.coffeeBeansTitle}>Coffee Beans</Text>
 
                 <FlatList
@@ -107,13 +142,13 @@ const HomeScreen = () => {
                     renderItem={({ item }) => {
                         return (
                             <TouchableOpacity>
-                                <CoffeeCard
-                                    data={item}
-                                    buttonPressHandler={() => { }}
-                                />
+                                <CoffeeCard data={item} buttonPressHandler={() => { }} />
                             </TouchableOpacity>
                         );
                     }}
+                    // FlatList optimizations
+                    initialNumToRender={5}
+                    windowSize={5}
                 />
             </ScrollView>
         </View>
