@@ -1,0 +1,91 @@
+workflows:
+  react-native-android:
+    name: React Native Android
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      node: 18
+      groups:
+        - google_credentials
+      vars:
+        PACKAGE_NAME: "com.coffee_shop_app"
+    scripts:
+      - name: Install npm dependencies
+        script: |
+          npm install
+      - name: Set Android SDK location
+        script: |
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > "$CM_BUILD_DIR/android/local.properties"
+      - name: Build Android release
+        script: |
+          cd android
+          ./gradlew bundleRelease
+    artifacts:
+      - android/app/build/outputs/**/*.aab
+      - android/app/build/outputs/**/*.apk
+    publishing:
+      email:
+        recipients:
+          - user@example.com
+        notify:
+          success: true
+          failure: true
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+
+  react-native-ios:
+    name: React Native iOS
+    max_build_duration: 60
+    instance_type: mac_mini_m1
+    environment:
+      node: 18
+      xcode: latest
+      cocoapods: default
+      groups:
+        - app_store_credentials
+      vars:
+        BUNDLE_ID: "com.coffee-shop-app"
+        XCODE_WORKSPACE: "Coffee_Shop_App.xcworkspace"
+        XCODE_SCHEME: "Coffee_Shop_App"
+    scripts:
+      - name: Install npm dependencies
+        script: |
+          npm install
+      - name: Install CocoaPods dependencies
+        script: |
+          cd ios && pod install
+      - name: Set up code signing settings on Xcode project
+        script: |
+          xcode-project use-profiles
+      - name: Build iOS release
+        script: |
+          cd ios
+          xcodebuild build -workspace "$XCODE_WORKSPACE" \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$CM_BUILD_DIR/build/ios/archive/$XCODE_SCHEME.xcarchive" \
+            archive
+      - name: Create .ipa
+        script: |
+          cd ios
+          xcodebuild -exportArchive \
+            -archivePath "$CM_BUILD_DIR/build/ios/archive/$XCODE_SCHEME.xcarchive" \
+            -exportPath "$CM_BUILD_DIR/build/ios/ipa" \
+            -exportOptionsPlist "$CM_BUILD_DIR/ios/exportOptions.plist"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+    publishing:
+      email:
+        recipients:
+          - user@example.com
+        notify:
+          success: true
+          failure: true
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
