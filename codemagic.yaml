@@ -30,22 +30,15 @@ workflows:
         notify:
           success: true
           failure: true
-      google_play:
-        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
-        track: internal
 
   react-native-ios:
     name: React Native iOS
     max_build_duration: 60
     instance_type: mac_mini_m1
-    integrations:
-      app_store_connect: codemagic
     environment:
       node: 18
       xcode: latest
       cocoapods: default
-      groups:
-        - app_store_credentials
       vars:
         BUNDLE_ID: "com.coffee-shop-app"
         XCODE_WORKSPACE: "Coffee_Shop_App.xcworkspace"
@@ -88,6 +81,3 @@ workflows:
         notify:
           success: true
           failure: true
-      app_store_connect:
-        auth: integration
-        submit_to_testflight: true
