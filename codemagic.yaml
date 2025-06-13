@@ -19,7 +19,7 @@ workflows:
       - name: Build Android release
         script: |
           cd android
-          ./gradlew bundleRelease
+          ./gradlew assembleRelease
     artifacts:
       - android/app/build/outputs/**/*.aab
       - android/app/build/outputs/**/*.apk
@@ -52,7 +52,8 @@ workflows:
           cd ios && pod install
       - name: Set up code signing settings on Xcode project
         script: |
-          xcode-project use-profiles
+          # Using automatic code signing for development
+          echo "Using automatic code signing for development build"
       - name: Build iOS release
         script: |
           cd ios
