@@ -21,7 +21,6 @@ workflows:
           cd android
           ./gradlew assembleRelease
     artifacts:
-      - android/app/build/outputs/**/*.aab
       - android/app/build/outputs/**/*.apk
     publishing:
       email:
@@ -31,54 +30,56 @@ workflows:
           success: true
           failure: true
 
-  react-native-ios:
-    name: React Native iOS
-    max_build_duration: 60
-    instance_type: mac_mini_m1
-    environment:
-      node: 18
-      xcode: latest
-      cocoapods: default
-      vars:
-        BUNDLE_ID: "com.coffee-shop-app"
-        XCODE_WORKSPACE: "Coffee_Shop_App.xcworkspace"
-        XCODE_SCHEME: "Coffee_Shop_App"
-    scripts:
-      - name: Install npm dependencies
-        script: |
-          npm install
-      - name: Install CocoaPods dependencies
-        script: |
-          cd ios && pod install
-      - name: Set up code signing settings on Xcode project
-        script: |
-          # Using automatic code signing for development
-          echo "Using automatic code signing for development build"
-      - name: Build iOS release
-        script: |
-          cd ios
-          xcodebuild build -workspace "$XCODE_WORKSPACE" \
-            -scheme "$XCODE_SCHEME" \
-            -configuration Release \
-            -destination 'generic/platform=iOS' \
-            -archivePath "$CM_BUILD_DIR/build/ios/archive/$XCODE_SCHEME.xcarchive" \
-            archive
-      - name: Create .ipa
-        script: |
-          cd ios
-          xcodebuild -exportArchive \
-            -archivePath "$CM_BUILD_DIR/build/ios/archive/$XCODE_SCHEME.xcarchive" \
-            -exportPath "$CM_BUILD_DIR/build/ios/ipa" \
-            -exportOptionsPlist "$CM_BUILD_DIR/ios/exportOptions.plist"
-    artifacts:
-      - build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
-      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
-    publishing:
-      email:
-        recipients:
-          - user@example.com
-        notify:
-          success: true
-          failure: true
+  # iOS workflow is commented out until you have an Apple Developer account
+  # Uncomment this section when you're ready to build for iOS
+  #react-native-ios:
+  #  name: React Native iOS
+  #  max_build_duration: 60
+  #  instance_type: mac_mini_m1
+  #  environment:
+  #    node: 18
+  #    xcode: latest
+  #    cocoapods: default
+  #    vars:
+  #      BUNDLE_ID: "com.coffee-shop-app"
+  #      XCODE_WORKSPACE: "Coffee_Shop_App.xcworkspace"
+  #      XCODE_SCHEME: "Coffee_Shop_App"
+  #  scripts:
+  #    - name: Install npm dependencies
+  #      script: |
+  #        npm install
+  #    - name: Install CocoaPods dependencies
+  #      script: |
+  #        cd ios && pod install
+  #    - name: Set up code signing settings on Xcode project
+  #      script: |
+  #        # This will need to be updated with your Apple Developer account details
+  #        echo "Using automatic code signing for development build"
+  #    - name: Build iOS release
+  #      script: |
+  #        cd ios
+  #        xcodebuild build -workspace "$XCODE_WORKSPACE" \
+  #          -scheme "$XCODE_SCHEME" \
+  #          -configuration Release \
+  #          -destination 'generic/platform=iOS' \
+  #          -archivePath "$CM_BUILD_DIR/build/ios/archive/$XCODE_SCHEME.xcarchive" \
+  #          archive
+  #    - name: Create .ipa
+  #      script: |
+  #        cd ios
+  #        xcodebuild -exportArchive \
+  #          -archivePath "$CM_BUILD_DIR/build/ios/archive/$XCODE_SCHEME.xcarchive" \
+  #          -exportPath "$CM_BUILD_DIR/build/ios/ipa" \
+  #          -exportOptionsPlist "$CM_BUILD_DIR/ios/exportOptions.plist"
+  #  artifacts:
+  #    - build/ios/ipa/*.ipa
+  #    - /tmp/xcodebuild_logs/*.log
+  #    - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.app
+  #    - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+  #  publishing:
+  #    email:
+  #      recipients:
+  #        - user@example.com
+  #      notify:
+  #        success: true
+  #        failure: true
